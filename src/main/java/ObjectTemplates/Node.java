@@ -13,4 +13,9 @@ public class Node {
     public int id;
     public String data;
     public int[] child_ids;
+    
+    @Override
+    public String toString(){
+        return "ID: " + id + " Data: " + data;
+    }
 }
