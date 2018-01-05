@@ -12,6 +12,7 @@ package ObjectTemplates;
 public class Node {
     public int id;
     public String data;
+    public int parent_id = -500;
     public int[] child_ids;
     
     @Override
