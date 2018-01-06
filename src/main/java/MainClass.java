@@ -2,9 +2,8 @@
 import java.io.IOException;
 import com.google.gson.Gson;
 import ObjectTemplates.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Locale;
+
+import java.util.*;
 
 public class MainClass {
     
@@ -30,7 +29,53 @@ public class MainClass {
         
         return adj;
     }
-    
+
+    private static boolean isCircularGraph(ArrayList<ArrayList<Integer>> adj, int current, boolean isInitSearch, int target,
+                                           ArrayList<Boolean> seen){
+        if(!isInitSearch && current == target){
+            return true;
+        }
+        Stack<Integer> unvisited = new Stack<>();
+        for (int adjNode : adj.get(current)){
+            unvisited.push(adjNode);
+//
+//            //Add to seen nodes
+//            seen.set(adjNode, true);
+//            //Add to root node
+//            if(!adj.get(target).contains(adjNode)){
+//                adj.get(target).add(adjNode);
+//            }
+
+        }
+
+        while(!unvisited.empty()){
+            if (isCircularGraph(adj, unvisited.pop(), false, target, seen)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void getAllChildNodes(ArrayList<ArrayList<Integer>> adj, ArrayList<Integer> visited, int current){
+        visited.add(current);
+        Stack<Integer> unvisited = new Stack<>();
+        for (int adjNode : adj.get(current)) {
+            unvisited.push(adjNode);
+        }
+
+        while(!unvisited.empty()){
+            int nextNode = unvisited.pop();
+            if(!visited.contains(nextNode)){
+                getAllChildNodes(adj, visited, nextNode);
+            }
+        }
+
+    }
+
+
+
+
     /**
      * @param args the command line arguments
      * @throws java.io.IOException
@@ -42,12 +87,14 @@ public class MainClass {
         int numNodes = 0;
         int totalNodes;
         ArrayList<Node> nodes = new ArrayList<>();
+        //Adjust for naming convention of nodes (they start at 1)
         nodes.add(null);
+        //Retrieve and parse JSON
         do{
             page++;
-            String currentPageURL = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=1&page=" + page;
+            String currentPageURL = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=2&page=" + page;
             String unparsedResponse = httpHandler.run(currentPageURL);
-//            System.out.println(unparsedResponse);
+            System.out.println(unparsedResponse);
 
             Gson parser = new Gson();
             OuterWrapper parsedResponse = parser.fromJson(unparsedResponse, OuterWrapper.class);
@@ -57,15 +104,17 @@ public class MainClass {
             numNodes += parsedResponse.menus.length;
             
         } while(numNodes < totalNodes);
-        
+
+        //Console logging
         for(Node n : nodes){
             if(n != null)
                 System.out.println(n.toString());
         }
-        ArrayList<Integer> seen = new ArrayList<>(totalNodes);
+
+
         ArrayList<ArrayList<Integer>> adj = constructGraph(totalNodes, nodes);
 
-        
+        //Console logging
         for(int i = 1; i < totalNodes + 1; i++){
             ArrayList<Integer> k = adj.get(i);
             System.out.print(i+ "'s children: ");
@@ -74,7 +123,38 @@ public class MainClass {
             }
             System.out.println();
         }
-        
+
+        //Check if menu is valid
+        ArrayList<Boolean> seen = new ArrayList<>(Collections.nCopies(totalNodes+1, false));
+        for(int i = 1; i < adj.size(); i++)
+        {
+            if(seen.get(i)){
+                continue;
+            }
+
+            ArrayList<Integer> allChildren = new ArrayList<>();
+            getAllChildNodes(adj, allChildren, i);
+
+            for(int child : allChildren){
+                seen.set(child, true);
+            }
+
+            if(isCircularGraph(adj,i,true,i, seen)) {
+                System.out.print(i+" Is Circular With Children: ");
+            } else{
+                System.out.print(i+" Is Not Circular With Children: ");
+                allChildren.remove(allChildren.indexOf(i));
+            }
+
+            //Output children
+            Collections.sort(allChildren);
+            for(int child : allChildren){
+                System.out.print(child +" ");
+            }
+            System.out.println();
+
+        }
+
        
     }
     
