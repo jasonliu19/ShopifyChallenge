@@ -6,9 +6,15 @@ import ObjectTemplates.*;
 import java.util.*;
 
 public class MainClass {
-    
-    private static ArrayList<ArrayList<Integer>> constructGraph(int totalNodes, ArrayList<Node> nodes){
-        ArrayList<ArrayList<Integer>> adj = new ArrayList<>();
+
+    /**
+     * Constructs an adjacency list to represent the menus
+     * @param totalNodes total number of nodes in the graph
+     * @param nodes list of nodes parsed from JSON data
+     * @return adjacency list
+     */
+    private static List<List<Integer>> constructGraph(int totalNodes, List<Node> nodes){
+        List<List<Integer>> adj = new ArrayList<>();
         
         for(int i = 0; i < totalNodes + 1; i++){
             adj.add(new ArrayList<Integer>());
@@ -30,26 +36,27 @@ public class MainClass {
         return adj;
     }
 
-    private static boolean isCircularGraph(ArrayList<ArrayList<Integer>> adj, int current, boolean isInitSearch, int target,
-                                           ArrayList<Boolean> seen){
+    /**
+     * Determines whether the graph connected to the starting node, current, contains a circular reference
+     * @param adj adjacency list for the graph
+     * @param current node to start traversal from
+     * @param isInitSearch used for recursive condition, always set to be true when calling this function
+     * @param target used for recursive condition, always set to be the same as node when calling this function
+     * @return true if the graph has a circular reference, false otherwise
+     */
+    private static boolean isCircularGraph(List<List<Integer>> adj, int current, boolean isInitSearch, int target){
         if(!isInitSearch && current == target){
             return true;
         }
         Stack<Integer> unvisited = new Stack<>();
         for (int adjNode : adj.get(current)){
             unvisited.push(adjNode);
-//
-//            //Add to seen nodes
-//            seen.set(adjNode, true);
-//            //Add to root node
-//            if(!adj.get(target).contains(adjNode)){
-//                adj.get(target).add(adjNode);
-//            }
+
 
         }
 
         while(!unvisited.empty()){
-            if (isCircularGraph(adj, unvisited.pop(), false, target, seen)){
+            if (isCircularGraph(adj, unvisited.pop(), false, target)){
                 return true;
             }
         }
@@ -57,7 +64,13 @@ public class MainClass {
         return false;
     }
 
-    private static void getAllChildNodes(ArrayList<ArrayList<Integer>> adj, ArrayList<Integer> visited, int current){
+    /**
+     * Traverses graph and mutates visited with all reachable nodes using DFS
+     * @param adj adjacency list for the graph
+     * @param visited list to be mutated with all reachable nodes
+     * @param current ID of the node to start the traversal from
+     */
+    private static void getAllChildNodes(List<List<Integer>> adj, List<Integer> visited, int current){
         visited.add(current);
         Stack<Integer> unvisited = new Stack<>();
         for (int adjNode : adj.get(current)) {
@@ -77,6 +90,7 @@ public class MainClass {
 
 
     /**
+     * Main logic for the challenge
      * @param args the command line arguments
      * @throws java.io.IOException
      */
@@ -112,11 +126,11 @@ public class MainClass {
         }
 
 
-        ArrayList<ArrayList<Integer>> adj = constructGraph(totalNodes, nodes);
+        List<List<Integer>> adj = constructGraph(totalNodes, nodes);
 
         //Console logging
         for(int i = 1; i < totalNodes + 1; i++){
-            ArrayList<Integer> k = adj.get(i);
+            List<Integer> k = adj.get(i);
             System.out.print(i+ "'s children: ");
             for(int j : k){
                 System.out.print(j+" ");
@@ -139,7 +153,7 @@ public class MainClass {
                 seen.set(child, true);
             }
 
-            if(isCircularGraph(adj,i,true,i, seen)) {
+            if(isCircularGraph(adj,i,true,i)) {
                 System.out.print(i+" Is Circular With Children: ");
             } else{
                 System.out.print(i+" Is Not Circular With Children: ");
