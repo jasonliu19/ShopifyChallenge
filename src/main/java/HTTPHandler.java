@@ -14,6 +14,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * Taken from the sample code in OkHTTP's documentation
+ */
 public class HTTPHandler {
   OkHttpClient client = new OkHttpClient();
 
