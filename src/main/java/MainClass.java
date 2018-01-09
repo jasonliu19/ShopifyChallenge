@@ -2,6 +2,7 @@
 import java.io.IOException;
 import com.google.gson.Gson;
 import ObjectTemplates.*;
+import com.google.gson.GsonBuilder;
 
 import java.util.*;
 
@@ -93,47 +94,54 @@ public class MainClass {
      */
     
     public static void main(String[] args) throws IOException {
+        computeChallenge(1);
+        computeChallenge(2);
+    }
+
+
+    private static void computeChallenge(int challengeID) throws IOException{
+
         HTTPHandler httpHandler = new HTTPHandler();
         int page = 0;
         int numNodes = 0;
         int totalNodes;
         ArrayList<Node> nodes = new ArrayList<>();
-        Gson parser = new Gson();
+        Gson parser = new GsonBuilder().setPrettyPrinting().create();
         //Adjust for naming convention of nodes (they start at 1)
         nodes.add(null);
         //Retrieve and parse JSON
         do{
             page++;
-            String currentPageURL = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=2&page=" + page;
+            String currentPageURL = "https://backend-challenge-summer-2018.herokuapp.com/challenges.json?id=" + challengeID +"&page=" + page;
             String unparsedResponse = httpHandler.run(currentPageURL);
-            System.out.println(unparsedResponse);
+//            System.out.println(unparsedResponse);
 
             OuterWrapper parsedResponse = parser.fromJson(unparsedResponse, OuterWrapper.class);
             totalNodes = parsedResponse.pagination.total;
-            
+
             nodes.addAll(Arrays.asList(parsedResponse.menus));
             numNodes += parsedResponse.menus.length;
-            
+
         } while(numNodes < totalNodes);
 
-        //Console logging
-        for(Node n : nodes){
-            if(n != null)
-                System.out.println(n.toString());
-        }
+//        //Console logging
+//        for(Node n : nodes){
+//            if(n != null)
+//                System.out.println(n.toString());
+//        }
 
 
         List<List<Integer>> adj = constructGraph(totalNodes, nodes);
 
-        //Console logging
-        for(int i = 1; i < totalNodes + 1; i++){
-            List<Integer> k = adj.get(i);
-            System.out.print(i+ "'s children: ");
-            for(int j : k){
-                System.out.print(j+" ");
-            }
-            System.out.println();
-        }
+//        //Console logging
+//        for(int i = 1; i < totalNodes + 1; i++){
+//            List<Integer> k = adj.get(i);
+//            System.out.print(i+ "'s children: ");
+//            for(int j : k){
+//                System.out.print(j+" ");
+//            }
+//            System.out.println();
+//        }
 
         //Array to avoid searching nodes connected to graphs that have already been checked
         List<Boolean> alreadyChecked = new ArrayList<>(Collections.nCopies(totalNodes+1, false));
@@ -158,26 +166,27 @@ public class MainClass {
 
             Collections.sort(allChildren);
             if(isCircularGraph(adj,i,true,i)) {
-                System.out.print(i+" Is Circular With Children: ");
+//                System.out.print(i+" Is Circular With Children: ");
                 Integer[] arrAllChildren = allChildren.toArray(new Integer[allChildren.size()]);
                 invalid_menus.add(new ShopifyMenu(i, convertToIntArray(allChildren)));
             } else{
-                System.out.print(i+" Is Not Circular With Children: ");
+//                System.out.print(i+" Is Not Circular With Children: ");
                 allChildren.remove(allChildren.indexOf(i));
                 valid_menus.add(new ShopifyMenu(i, convertToIntArray(allChildren)));
             }
 
-            //Output children
-            for(int child : allChildren){
-                System.out.print(child +" ");
-            }
-            System.out.println();
+//            //Output children
+//            for(int child : allChildren){
+//                System.out.print(child +" ");
+//            }
+//            System.out.println();
 
         }
 
         OutputWrapper finalAnswer = new OutputWrapper(convertToShopifyMenuArray(valid_menus), convertToShopifyMenuArray(invalid_menus));
 
         String finalAnswerJSON = parser.toJson(finalAnswer);
+        System.out.println("Answer for challenge #" + challengeID);
         System.out.println(finalAnswerJSON);
 
     }
